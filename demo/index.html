@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AskaDB demo: ask a database in your browser</title>
+<meta name="description" content="Try AskaDB with no login. A sample music-store database and an optional AI model run fully in your browser. Nothing is uploaded.">
+<link rel="icon" href="../icon.png">
+<style>
+:root{--bg:#0e0f14;--panel:#15161d;--raised:#1d1f28;--line:#2a2d3a;--ink:#eeeff5;--muted:#a2a5b8;--accent:#8b6cff;--accent2:#6a4bea;--soft:rgba(139,108,255,.16);--ok:#5cc98a;--bad:#ff8a80}
+@media(prefers-color-scheme:light){:root{--bg:#f6f6fa;--panel:#fff;--raised:#f1f0f7;--line:#e3e1ee;--ink:#15131f;--muted:#5a5670;--accent:#5b3fe0;--accent2:#4527c9;--soft:#eee9ff;--ok:#2e7d32;--bad:#d52027}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px 60px}
+nav{display:flex;align-items:center;justify-content:space-between;padding:16px 0}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;text-decoration:none;color:inherit}.logo img{width:30px;height:30px;border-radius:8px}
+nav a.b{color:var(--muted);font-size:14px;text-decoration:none}
+h1{font-size:clamp(26px,5vw,38px);margin:10px 0 6px;letter-spacing:-.02em}
+.lead{color:var(--muted);margin:0 0 18px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px}
+.row{display:flex;gap:10px}
+textarea{flex:1;min-height:58px;resize:vertical;background:var(--raised);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit}
+textarea:focus{outline:2px solid var(--accent);outline-offset:0}
+button{font:inherit;cursor:pointer}
+.go{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:0;border-radius:12px;padding:0 22px;font-weight:600;min-width:84px}
+.go:disabled{opacity:.5;cursor:default}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chip{background:var(--raised);color:var(--ink);border:1px solid var(--line);border-radius:99px;padding:6px 14px;font-size:14px}
+.chip:hover{border-color:var(--accent)}
+.hint{font-size:13px;color:var(--muted);margin-top:10px}
+.ai{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
+.ai button{background:var(--soft);color:var(--accent);border:1px solid transparent;border-radius:10px;padding:7px 14px;font-weight:600}
+.bar{flex:1;min-width:140px;height:8px;border-radius:9px;background:var(--raised);overflow:hidden;display:none}.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+#msg{margin:14px 0 0;min-height:22px;font-size:14px;color:var(--muted)}#msg.err{color:var(--bad)}
+.res{margin-top:16px;display:none}
+.res h3{margin:0 0 4px;font-size:18px}
+.meta{font-size:13px;color:var(--muted);margin-bottom:10px}
+.tw{overflow:auto;max-height:340px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:8px 12px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--line)}
+th{position:sticky;top:0;background:var(--raised);color:var(--muted);font-weight:600}td.n{text-align:right}
+details{margin-top:12px}summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:14px}
+pre{margin:8px 0 0;padding:12px;background:var(--raised);border:1px solid var(--line);border-radius:12px;overflow:auto;font-size:13px;white-space:pre-wrap}
+.priv{margin-top:26px;font-size:14px;color:var(--muted);display:grid;gap:6px}.priv b{color:var(--ink)}
+.cta{margin-top:22px;text-align:center}.cta a{display:inline-block;background:var(--soft);color:var(--accent);padding:10px 20px;border-radius:12px;font-weight:600;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav><a class="logo" href="../"><img src="../icon.png" alt="">AskaDB</a><a class="b" href="../">Back to site</a></nav>
+  <h1>Try AskaDB in your browser</h1>
+  <p class="lead">A sample music-store database is loaded below. Click an example for an instant answer, or turn on the in-browser AI and type your own question. No login. Nothing is uploaded.</p>
+
+  <div class="box">
+    <div class="row"><textarea id="q" placeholder="Ask about the music store, e.g. Which genre sells the most?" aria-label="Your question"></textarea><button class="go" id="go" disabled>Ask</button></div>
+    <div class="chips" id="chips"></div>
+    <div class="ai">
+      <span id="aiState">In-browser AI is off. Examples above work without it.</span>
+      <button id="aiBtn" type="button">Turn on AI (about 1 GB, one time)</button>
+      <div class="bar" id="bar"><i id="barI"></i></div>
+    </div>
+    <div class="hint" id="hint">Loading the sample database…</div>
+  </div>
+
+  <p id="msg" role="status"></p>
+  <div class="res" id="res">
+    <h3 id="title"></h3><div class="meta" id="meta"></div>
+    <div class="tw"><table id="tbl"></table></div>
+    <details><summary>Show the SQL</summary><pre id="sql"></pre></details>
+  </div>
+
+  <div class="priv">
+    <div><b>Private:</b> the database and the AI model both run inside this page. No server, no account, no API key.</div>
+    <div><b>Read-only:</b> only a single SELECT is allowed, and the database is in read-only mode.</div>
+    <div><b>Schema only:</b> the AI sees table and column names, never the rows.</div>
+  </div>
+  <div class="cta"><a href="../#cta">Get the Windows app</a></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const MODEL = 'Qwen2.5-Coder-1.5B-Instruct-q4f16_1-MLC';
+  const WEBLLM = 'https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.79/+esm';
+  // Pre-written examples: instant, and they work on every device.
+  const EXAMPLES = [
+    ['Top 10 countries by sales', 'SELECT c.Country, ROUND(SUM(i.Total), 2) AS Sales FROM Invoice i JOIN Customer c ON c.CustomerId = i.CustomerId GROUP BY c.Country ORDER BY Sales DESC LIMIT 10'],
+    ['Which genre sells the most?', 'SELECT g.Name AS Genre, ROUND(SUM(il.UnitPrice * il.Quantity), 2) AS Revenue FROM InvoiceLine il JOIN Track t ON t.TrackId = il.TrackId JOIN Genre g ON g.GenreId = t.GenreId GROUP BY g.Name ORDER BY Revenue DESC LIMIT 10'],
+    ['Monthly sales for 2012', "SELECT strftime('%Y-%m', InvoiceDate) AS Month, ROUND(SUM(Total), 2) AS Sales FROM Invoice WHERE strftime('%Y', InvoiceDate) = '2012' GROUP BY Month ORDER BY Month"],
+    ['Top 5 customers by spending', 'SELECT c.FirstName || \' \' || c.LastName AS Customer, c.Country, ROUND(SUM(i.Total), 2) AS Spent FROM Customer c JOIN Invoice i ON i.CustomerId = c.CustomerId GROUP BY c.CustomerId ORDER BY Spent DESC LIMIT 5'],
+    ['How many tracks does each artist have?', 'SELECT ar.Name AS Artist, COUNT(*) AS Tracks FROM Track t JOIN Album al ON al.AlbumId = t.AlbumId JOIN Artist ar ON ar.ArtistId = al.ArtistId GROUP BY ar.ArtistId ORDER BY Tracks DESC LIMIT 10'],
+  ];
+  let db = null, schemaText = '', engine = null, aiReady = false;
+
+  const msg = (t, err) => { $('msg').textContent = t || ''; $('msg').className = err ? 'err' : ''; };
+
+  // The same kind of guard as the desktop app: one SELECT, nothing that writes.
+  function guard(sql) {
+    let s = String(sql || '').trim().replace(/;+\s*$/, '');
+    const masked = s.replace(/--[^\n]*/g, ' ').replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/'(?:[^']|'')*'/g, "''").replace(/"(?:[^"]|"")*"/g, '""');
+    if (!/^\s*(select|with)\b/i.test(masked)) return { ok: false, why: 'Only SELECT queries are allowed.' };
+    if (masked.includes(';')) return { ok: false, why: 'Only one statement is allowed.' };
+    const bad = masked.match(/\b(insert|update|delete|drop|alter|create|replace|attach|detach|pragma|vacuum|reindex|truncate|exec|merge)\b/i);
+    if (bad) return { ok: false, why: `"${bad[1]}" is not allowed. This demo only reads data.` };
+    return { ok: true, sql: s };
+  }
+
+  function show(title, sql, ms, who) {
+    const r = db.exec(sql)[0] || { columns: [], values: [] };
+    const rows = r.values.slice(0, 200);
+    const t = $('tbl'); t.textContent = '';
+    const head = t.createTHead().insertRow();
+    r.columns.forEach((c) => { const th = document.createElement('th'); th.textContent = c; head.appendChild(th); });
+    const body = t.createTBody();
+    rows.forEach((row) => { const tr = body.insertRow(); row.forEach((v) => { const td = tr.insertCell(); td.textContent = v == null ? '' : v; if (typeof v === 'number') td.className = 'n'; }); });
+    $('title').textContent = title; $('sql').textContent = sql;
+    $('meta').textContent = `${r.values.length.toLocaleString()} row${r.values.length === 1 ? '' : 's'}${r.values.length > 200 ? ' (first 200 shown)' : ''} · ${ms} ms · ${who}`;
+    $('res').style.display = 'block'; msg('');
+  }
+
+  function run(title, sql, who) {
+    const g = guard(sql);
+    if (!g.ok) { msg(g.why, true); return false; }
+    const t0 = performance.now();
+    try { show(title, g.sql, Math.round(performance.now() - t0), who); return true; }
+    catch (e) { msg(String(e.message || e), true); return false; }
+  }
+
+  function buildSchema() {
+    const tabs = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name")[0].values.map((v) => v[0]);
+    schemaText = tabs.map((t) => `${t}(${db.exec(`PRAGMA table_info("${t}")`)[0].values.map((c) => `${c[1]} ${c[2]}`).join(', ')})`).join('\n');
+  }
+
+  async function askAI(q) {
+    const system = 'You write ONE read-only SQLite query for the schema below. Reply with only the SQL in a single code block, no explanation. Use only these tables and columns. Use LIMIT for "top N" questions. Give columns clear aliases.\nSchema:\n' + schemaText;
+    const ask = async (user) => { const r = await engine.chat.completions.create({ messages: [{ role: 'system', content: system }, { role: 'user', content: user }], temperature: 0, max_tokens: 400 }); return r.choices[0].message.content; };
+    const pull = (t) => (/```(?:sql)?\s*([\s\S]*?)```/i.exec(t) || [null, t])[1].trim();
+    let sql = pull(await ask(q));
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const g = guard(sql);
+      if (g.ok) { try { db.exec(`EXPLAIN ${g.sql}`); return g.sql; } catch (e) { sql = pull(await ask(`${q}\n\nYour last query failed. Fix it. Only the error text follows.\nSQL: ${sql}\nError: ${e.message}`)); continue; } }
+      throw new Error(g.why);
+    }
+    return sql;
+  }
+
+  async function submit(q, preset) {
+    q = String(q || '').trim(); if (!q) return;
+    $('go').disabled = true; msg('Thinking…');
+    try {
+      if (preset) { run(q, preset, 'pre-written example, no AI'); return; }
+      if (!aiReady) { msg('Free typing needs the in-browser AI. Click "Turn on AI" above, or pick an example.', true); return; }
+      const t0 = performance.now(); const sql = await askAI(q);
+      run(q, sql, `AI in your browser · ${((performance.now() - t0) / 1000).toFixed(1)} s`);
+    } catch (e) { msg(String(e.message || e), true); } finally { $('go').disabled = false; }
+  }
+
+  async function turnOnAI() {
+    if (!navigator.gpu) { $('aiState').textContent = 'This browser has no WebGPU. Try the latest Chrome or Edge on a computer. Examples still work.'; $('aiBtn').disabled = true; return; }
+    $('aiBtn').disabled = true; $('bar').style.display = 'block'; $('aiState').textContent = 'Downloading the model… keep this tab open.';
+    try {
+      const webllm = await import(WEBLLM);
+      engine = await webllm.CreateMLCEngine(MODEL, { initProgressCallback: (p) => { $('barI').style.width = `${Math.round((p.progress || 0) * 100)}%`; if (p.text) $('aiState').textContent = p.text.slice(0, 90); } });
+      aiReady = true; $('bar').style.display = 'none'; $('aiBtn').style.display = 'none';
+      $('aiState').textContent = 'AI is on and runs only in this browser. Type your own question.';
+      $('hint').textContent = 'Tip: small models can be wrong. Check the SQL under each answer.';
+    } catch (e) { $('bar').style.display = 'none'; $('aiBtn').disabled = false; $('aiState').textContent = `Could not start the AI: ${String(e.message || e).slice(0, 120)}. Examples still work.`; }
+  }
+
+  EXAMPLES.forEach(([t, s]) => { const b = document.createElement('button'); b.className = 'chip'; b.type = 'button'; b.textContent = t; b.onclick = () => { $('q').value = t; submit(t, s); }; $('chips').appendChild(b); });
+  $('go').onclick = () => { const q = $('q').value; const ex = EXAMPLES.find((e) => e[0].toLowerCase() === q.trim().toLowerCase()); submit(q, ex && ex[1]); };
+  $('q').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('go').click(); } });
+  $('aiBtn').onclick = turnOnAI;
+
+  (async () => {
+    try {
+      const SQL = await initSqlJs({ locateFile: (f) => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${f}` });
+      const buf = await (await fetch('chinook.sqlite')).arrayBuffer();
+      db = new SQL.Database(new Uint8Array(buf));
+      db.exec('PRAGMA query_only = ON');
+      buildSchema();
+      $('hint').textContent = `Sample database ready: ${schemaText.split('\n').length} tables. Click an example.`;
+      $('go').disabled = false;
+    } catch (e) { msg('Could not load the sample database. Check your connection and refresh.', true); }
+  })();
+})();
+</script>
+</body>
+</html>

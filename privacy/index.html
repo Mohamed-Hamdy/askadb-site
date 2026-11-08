@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AskaDB privacy policy</title>
+<meta name="description" content="How AskaDB handles your data: local-first, read-only, no accounts, no tracking.">
+<link rel="icon" href="../icon.png">
+<style>
+:root{--bg:#0e0f14;--panel:#15161d;--line:#2a2d3a;--ink:#eeeff5;--muted:#a2a5b8;--accent:#8b6cff}
+@media(prefers-color-scheme:light){:root{--bg:#f6f6fa;--panel:#fff;--line:#e3e1ee;--ink:#15131f;--muted:#5a5670;--accent:#5b3fe0}}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+.w{max-width:760px;margin:0 auto;padding:24px 16px 70px}
+a{color:var(--accent)}h1{font-size:34px;margin:.4em 0 .2em;letter-spacing:-.02em}h2{font-size:20px;margin:1.8em 0 .4em}
+.m{color:var(--muted)}ul{padding-left:20px}li{margin:.3em 0}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;text-decoration:none;color:inherit}.logo img{width:30px;height:30px;border-radius:8px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 18px}
+</style>
+</head>
+<body>
+<div class="w">
+  <a class="logo" href="../"><img src="../icon.png" alt="">AskaDB</a>
+  <h1>Privacy policy</h1>
+  <p class="m">AskaDB is made by Selecta Labs. Last updated: 8 November 2026.</p>
+
+  <div class="box"><b>In short:</b> AskaDB runs on your computer. It has no accounts, no ads and no tracking. It reads your data and never changes it. Your data rows are never sent to an AI.</div>
+
+  <h2>What stays on your computer</h2>
+  <ul>
+    <li><b>Your data sources.</b> Connection details you add (server, database, user name) are saved on your computer. Passwords and AI keys are encrypted with Windows.</li>
+    <li><b>Your files.</b> Excel, CSV and SQLite files are opened in memory and are not copied or saved by AskaDB.</li>
+    <li><b>Answers you confirm.</b> If you press the thumbs-up, AskaDB saves that question and its SQL on your computer to answer faster next time. You can erase them at any time with "Forget learned answers".</li>
+    <li><b>A list of table and column names</b> of your database, saved on your computer so large databases open faster.</li>
+  </ul>
+
+  <h2>What is sent to an AI service</h2>
+  <p>When you ask a question, AskaDB sends the AI provider <b>your question and the names of tables and columns</b> (and column descriptions, if your database has them). <b>It never sends data rows.</b> If an error happens, only the error text is sent so the query can be fixed.</p>
+  <ul>
+    <li>If you choose <b>Ollama</b> or another local model, nothing leaves your computer.</li>
+    <li>If you choose a cloud provider (for example Google Gemini, Groq or OpenAI), you use <b>your own account and key</b>. Their privacy policy applies to what they receive. Some free plans may use prompts to improve their models. Read your provider's terms.</li>
+  </ul>
+
+  <h2>What we collect</h2>
+  <p>Nothing. AskaDB has no analytics, no crash reporting and no accounts. Selecta Labs does not receive your questions, your data or your keys.</p>
+
+  <h2>Safety of your database</h2>
+  <p>AskaDB only runs read-only queries. Every query is checked, runs inside a transaction that is always rolled back, and has a limit of 1,000 rows and 30 seconds. We still recommend using a database account with read-only rights.</p>
+
+  <h2>The website demo</h2>
+  <p>The demo on this website runs entirely in your browser with a sample database. If you turn on the in-browser AI, your browser downloads a model from a public CDN and keeps it on your device. Your questions are not sent to us.</p>
+
+  <h2>Children</h2>
+  <p>AskaDB is a work tool and is not directed at children.</p>
+
+  <h2>Changes and contact</h2>
+  <p>If this policy changes, we will update the date above. Questions? Open an issue at <a href="https://github.com/Mohamed-Hamdy/askadb-site/issues">github.com/Mohamed-Hamdy/askadb-site/issues</a>.</p>
+</div>
+</body>
+</html>
