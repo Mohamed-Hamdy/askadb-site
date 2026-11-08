@@ -40,6 +40,15 @@ table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:8px 12px;
 th{position:sticky;top:0;background:var(--raised);color:var(--muted);font-weight:600}td.n{text-align:right}
 details{margin-top:12px}summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:14px}
 pre{margin:8px 0 0;padding:12px;background:var(--raised);border:1px solid var(--line);border-radius:12px;overflow:auto;font-size:13px;white-space:pre-wrap}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin:10px 0 0}
+.tabs button{border:0;background:transparent;padding:9px 12px;font-weight:600;font-size:13px;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--accent)}
+.chartwrap{padding-top:10px}.chartwrap svg{width:100%;height:auto;display:block;fill:none;stroke:none}
+.ch-grid{stroke:var(--line);stroke-width:1}
+.ch-tick,.ch-lab,.ch-val{font-family:inherit;stroke:none}.ch-tick{fill:var(--muted);font-size:12px}.ch-lab{fill:var(--ink);font-size:12.5px}.ch-val{fill:var(--ink);font-size:12px;font-weight:600}
+.ch-legend{display:flex;gap:16px;justify-content:center;font-size:12.5px;color:var(--muted);margin-top:6px}.ch-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px}
+.ch-note{text-align:center;font-size:12px;color:var(--muted)}
+[hidden]{display:none!important}
 .priv{margin-top:26px;font-size:14px;color:var(--muted);display:grid;gap:6px}.priv b{color:var(--ink)}
 .cta{margin-top:22px;text-align:center}.cta a{display:inline-block;background:var(--soft);color:var(--accent);padding:10px 20px;border-radius:12px;font-weight:600;text-decoration:none}
 </style>
@@ -64,8 +73,10 @@ pre{margin:8px 0 0;padding:12px;background:var(--raised);border:1px solid var(--
   <p id="msg" role="status"></p>
   <div class="res" id="res">
     <h3 id="title"></h3><div class="meta" id="meta"></div>
-    <div class="tw"><table id="tbl"></table></div>
-    <details><summary>Show the SQL</summary><pre id="sql"></pre></details>
+    <div class="tabs"><button id="tChart" class="on" hidden>Chart</button><button id="tTable">Results</button><button id="tSql">SQL</button></div>
+    <div class="chartwrap" id="pChart" hidden></div>
+    <div class="tw" id="pTable"><table id="tbl"></table></div>
+    <pre id="sql" hidden></pre>
   </div>
 
   <div class="priv">
@@ -77,6 +88,7 @@ pre{margin:8px 0 0;padding:12px;background:var(--raised);border:1px solid var(--
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+<script src="chart.js"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -92,7 +104,7 @@ pre{margin:8px 0 0;padding:12px;background:var(--raised);border:1px solid var(--
   ];
   let db = null, schemaText = '', engine = null, aiReady = false;
 
-  const msg = (t, err) => { $('msg').textContent = t || ''; $('msg').className = err ? 'err' : ''; };
+  const msg = (t, err) => { $('msg').textContent = t || ''; $('msg').className = err ? 'err' : ''; if (t) $('msg').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); };
 
   // The same kind of guard as the desktop app: one SELECT, nothing that writes.
   function guard(sql) {
@@ -115,8 +127,14 @@ pre{margin:8px 0 0;padding:12px;background:var(--raised);border:1px solid var(--
     rows.forEach((row) => { const tr = body.insertRow(); row.forEach((v) => { const td = tr.insertCell(); td.textContent = v == null ? '' : v; if (typeof v === 'number') td.className = 'n'; }); });
     $('title').textContent = title; $('sql').textContent = sql;
     $('meta').textContent = `${r.values.length.toLocaleString()} row${r.values.length === 1 ? '' : 's'}${r.values.length > 200 ? ' (first 200 shown)' : ''} · ${ms} ms · ${who}`;
+    const spec = window.AskaChart.pickChart(r.columns, r.values);
+    $('tChart').hidden = !spec; if (spec) window.AskaChart.drawChart($('pChart'), spec);
+    tab(spec ? 'chart' : 'table');
     $('res').style.display = 'block'; msg('');
+    $('res').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
+  function tab(n) { $('pChart').hidden = n !== 'chart'; $('pTable').hidden = n !== 'table'; $('sql').hidden = n !== 'sql'; $('tChart').classList.toggle('on', n === 'chart'); $('tTable').classList.toggle('on', n === 'table'); $('tSql').classList.toggle('on', n === 'sql'); }
+  $('tChart').onclick = () => tab('chart'); $('tTable').onclick = () => tab('table'); $('tSql').onclick = () => tab('sql');
 
   function run(title, sql, who) {
     const g = guard(sql);
@@ -146,13 +164,13 @@ pre{margin:8px 0 0;padding:12px;background:var(--raised);border:1px solid var(--
 
   async function submit(q, preset) {
     q = String(q || '').trim(); if (!q) return;
-    $('go').disabled = true; msg('Thinking…');
+    $('go').disabled = true; $('go').textContent = '…'; msg('Thinking…');
     try {
       if (preset) { run(q, preset, 'pre-written example, no AI'); return; }
       if (!aiReady) { msg('Free typing needs the in-browser AI. Click "Turn on AI" above, or pick an example.', true); return; }
       const t0 = performance.now(); const sql = await askAI(q);
       run(q, sql, `AI in your browser · ${((performance.now() - t0) / 1000).toFixed(1)} s`);
-    } catch (e) { msg(String(e.message || e), true); } finally { $('go').disabled = false; }
+    } catch (e) { msg(String(e.message || e), true); } finally { $('go').disabled = false; $('go').textContent = 'Ask'; }
   }
 
   async function turnOnAI() {
