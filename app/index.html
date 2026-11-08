@@ -59,12 +59,19 @@ pre{margin:12px 0 0;padding:12px;background:var(--raised);border:1px solid var(-
 .ch-legend{display:flex;gap:16px;justify-content:center;font-size:12.5px;color:var(--muted);margin-top:6px}.ch-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px}
 .ch-note{text-align:center;font-size:12px;color:var(--muted)}
 .priv{margin-top:22px;font-size:14px;color:var(--muted);display:grid;gap:6px}.priv b{color:var(--ink)}
+.gd-back{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:rgba(5,6,15,.62);padding:16px}
+.gd-card{width:min(540px,100%);background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:0 30px 90px rgba(0,0,0,.4);padding:24px 24px 22px;max-height:94vh;overflow:auto}
+.gd-card h2{margin:0 0 4px;font-size:21px}.gd-card .l{margin:0 0 12px;color:var(--muted)}
+.gd-s{display:flex;gap:14px;align-items:flex-start;padding:9px 0}.gd-s b{display:block}.gd-s p{margin:0;color:var(--muted);font-size:14px;line-height:1.5}
+.gd-n{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--soft);color:var(--accent);font-weight:700}
+.gd-safe{margin:10px 0 16px;padding:10px 12px;border-radius:10px;background:var(--raised);border:1px solid var(--line);font-size:13px;color:var(--muted)}
+.gd-go{width:100%;padding:11px;font-weight:600}
 [hidden]{display:none!important}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <nav><a class="logo" href="../"><img src="../icon.png" alt="">AskaDB</a><div><a class="b" href="../demo/">Sample demo</a><a class="b" href="../privacy/">Privacy</a><a class="b" href="../">Windows app</a></div></nav>
+  <nav><a class="logo" href="../"><img src="../icon.png" alt="">AskaDB</a><div><a class="b" href="#" id="howBtn">How it works</a><a class="b" href="../demo/">Sample demo</a><a class="b" href="../privacy/">Privacy</a><a class="b" href="../">Windows app</a></div></nav>
   <h1>Ask your Excel, CSV or SQLite file</h1>
   <p class="lead">Free. No login. Your file stays in this browser tab and is never uploaded.</p>
 
@@ -114,5 +121,25 @@ pre{margin:12px 0 0;padding:12px;background:var(--raised);border:1px solid var(-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
 <script src="chart.js"></script>
 <script src="app.js"></script>
+<script>
+(function(){var K='askable.webguide';
+function seen(){try{return localStorage.getItem(K)==='1'}catch(e){return false}}
+function mark(){try{localStorage.setItem(K,'1')}catch(e){}}
+var S=[['1','Add your file','Drop an Excel, CSV or SQLite file. It stays in this browser tab and is never uploaded.'],
+['2','Pick the AI','Open AI settings. Use the model in your browser, or paste your own key. The AI sees table and column names, never your rows.'],
+['3','Ask in plain words','Type a question like "Top 10 customers by sales" and press Ask. You get the table, a chart and the SQL.']];
+var box=null;
+function close(){if(box){box.remove();box=null}mark();var q=document.getElementById('q');if(q)q.focus()}
+function open(){if(box)return;box=document.createElement('div');box.className='gd-back';box.setAttribute('role','dialog');box.setAttribute('aria-modal','true');box.setAttribute('aria-label','How AskaDB works');
+var c=document.createElement('div');c.className='gd-card';var h=document.createElement('h2');h.textContent='Welcome to AskaDB';var l=document.createElement('p');l.className='l';l.textContent='Ask your files a question in plain words. Three steps:';c.append(h,l);
+S.forEach(function(x){var r=document.createElement('div');r.className='gd-s';var n=document.createElement('span');n.className='gd-n';n.textContent=x[0];var d=document.createElement('div');var b=document.createElement('b');b.textContent=x[1];var p=document.createElement('p');p.textContent=x[2];d.append(b,p);r.append(n,d);c.append(r)});
+var sf=document.createElement('div');sf.className='gd-safe';sf.textContent='Safe by design: AskaDB only reads. It never changes your data.';
+var g=document.createElement('button');g.type='button';g.className='go gd-go';g.textContent='Got it';g.onclick=close;c.append(sf,g);box.append(c);
+box.addEventListener('click',function(e){if(e.target===box)close()});
+document.addEventListener('keydown',function esc(e){if(e.key==='Escape'&&box){close();document.removeEventListener('keydown',esc)}});
+document.body.append(box);g.focus()}
+document.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('howBtn');if(b)b.addEventListener('click',function(e){e.preventDefault();open()});if(!seen())open()});
+})();
+</script>
 </body>
 </html>
