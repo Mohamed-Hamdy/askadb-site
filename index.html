@@ -44,23 +44,33 @@ section{padding:64px 0}h2{font-size:clamp(26px,4vw,36px);margin:0 0 8px;letter-s
 .cta{text-align:center;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;border-radius:22px;padding:46px 20px}
 .cta h2{color:#fff}.cta p{opacity:.9;margin:0 0 20px}.cta .btn{background:#fff;color:#3a22a8;border:0}
 footer{padding:34px 0;color:var(--muted);font-size:14px;text-align:center}
+footer a{color:var(--muted);text-decoration:underline}footer a:hover{color:#6d4aff}
+.promo{display:block;width:100%;max-width:900px;margin:0 auto;border-radius:14px;border:1px solid rgba(128,128,128,.25);background:#000}
 </style>
 </head>
 <body>
 <div class="wrap">
   <nav>
     <a class="logo" href="#"><img src="icon.png" alt="">AskaDB</a>
-    <div><a class="l" href="demo/">Demo</a><a class="l" href="#how">How it works</a><a class="l" href="#safe">Safety</a><a class="l" href="#db">Databases</a></div>
+    <div><a class="l" href="demo/">Demo</a><a class="l" href="app/">Files app</a><a class="l" href="#how">How it works</a><a class="l" href="#safe">Safety</a><a class="l" href="#db">Databases</a><a class="l" href="https://apps.microsoft.com/detail/9N9RGB8ZRK8N" target="_blank" rel="noopener">Microsoft Store</a></div>
   </nav>
 
   <header class="hero">
-    <span class="pill">By Selecta Labs · for Windows</span>
+    <span class="pill">By <a href="https://selectalabs.github.io/" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Selecta Labs</a> · for Windows</span>
     <h1>Ask your database <span>in plain words</span></h1>
     <p class="lead">Type a question the way you would say it. AskaDB writes safe, read-only SQL, runs it, and shows the answer with a simple explanation.</p>
-    <div class="btns"><a class="btn p" href="demo/">Try it in your browser</a><a class="btn" href="#cta">Get early access</a><a class="btn" href="#how">See how it works</a></div>
-    <p class="note">Windows installer coming soon · Free to start</p>
+    <div class="btns"><a class="btn p" href="https://apps.microsoft.com/detail/9N9RGB8ZRK8N" target="_blank" rel="noopener">Get it on Microsoft Store</a><a class="btn" href="demo/">Try it in your browser</a><a class="btn" href="app/">Ask your Excel or CSV</a></div>
+    <p class="note">Free · Windows 10 and 11 · Also runs in your browser</p>
     <div class="shot"><img class="d" src="shot-dark.png" alt="AskaDB showing the top countries by sales with a plain explanation"><img class="l" src="shot-light.png" alt="AskaDB in light mode"></div>
   </header>
+
+  <section id="video">
+    <h2>See it in 30 seconds</h2>
+    <p class="sub">A question, a safe query, and an answer you can read.</p>
+    <video class="promo" controls preload="none" poster="poster.png" playsinline>
+      <source src="askadb-promo.mp4" type="video/mp4">
+    </video>
+  </section>
 
   <section id="how">
     <h2>From question to answer in seconds</h2>
@@ -107,10 +117,10 @@ footer{padding:34px 0;color:var(--muted);font-size:14px;text-align:center}
   </section>
 
   <section id="cta">
-    <div class="cta"><h2>Ready to ask your data?</h2><p>The Windows installer is on its way. Stay tuned.</p><a class="btn" href="#">Back to top</a></div>
+    <div class="cta"><h2>Ready to ask your data?</h2><p>Free on the Microsoft Store for Windows 10 and 11, or use it right now in your browser.</p><div class="btns" style="justify-content:center"><a class="btn" href="https://apps.microsoft.com/detail/9N9RGB8ZRK8N" target="_blank" rel="noopener">Get it on Microsoft Store</a><a class="btn" href="app/">Open the web app</a></div></div>
   </section>
 
-  <footer>© <span id="y"></span> Selecta Labs · AskaDB</footer>
+  <footer><a href="https://apps.microsoft.com/detail/9N9RGB8ZRK8N" target="_blank" rel="noopener">Microsoft Store</a> · <a href="app/">Web app</a> · <a href="demo/">Demo</a> · <a href="privacy/">Privacy</a> · <a href="https://selectalabs.github.io/" target="_blank" rel="noopener">Selecta Labs</a><br><br>© <span id="y"></span> <a href="https://selectalabs.github.io/" target="_blank" rel="noopener">Selecta Labs</a> · AskaDB</footer>
 </div>
 <script>document.getElementById('y').textContent=new Date().getFullYear()</script>
 </body>
